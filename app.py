@@ -34,34 +34,39 @@ Property_Area = {'Urban': 2, 'Semi-Urban': 1, 'Rural': 0}[Property_Area]
 # Features for CIBIL Prediction
 features_cibil = np.array([[Gender, Married, Education, Self_Employed,
                             ApplicantIncome, Property_Area, Loan_Duration]])
-
+min_income_required = 25000
 if st.button('Predict CIBIL Score & Loan Details'):
+    if ApplicantIncome == 0:
+        st.warning('Please Enter the income')
+    elif ApplicantIncome < min_income_required:
+        st.error(f"⚠️ Sorry, minimum income of ₹{min_income_required} is required to process the loan application.")
+    else:
     # Predict CIBIL Score
-    scaled_cibil = scaler_cibil.transform(features_cibil)
-    cibil_pred = model_cibil.predict(scaled_cibil)[0]
-    st.success(f'✅ Predicted CIBIL Score: {cibil_pred:.2f}')
+        scaled_cibil = scaler_cibil.transform(features_cibil)
+        cibil_pred = model_cibil.predict(scaled_cibil)[0]
+        st.success(f'✅ Predicted CIBIL Score: {cibil_pred:.2f}')
 
     # Predict Loan Amount
-    feature_loan = np.array([[ApplicantIncome, cibil_pred]])
-    scaled_loan = scaler_loan.transform(feature_loan)
-    loan_pred = model_loan.predict(scaled_loan)[0]
-    st.success(f'💰 Eligible Loan Amount: ₹{loan_pred:.2f}')
+        feature_loan = np.array([[ApplicantIncome, cibil_pred]])
+        scaled_loan = scaler_loan.transform(feature_loan)
+        loan_pred = model_loan.predict(scaled_loan)[0]
+        st.success(f'💰 Eligible Loan Amount: ₹{loan_pred:.2f}')
 
     # EMI Calculation
-    P = loan_pred  # Principal
-    R = interest_rate / (12 * 100)  # Monthly Interest Rate
-    N = Loan_Duration * 12  # Total Loan Months
+        P = loan_pred  # Principal
+        R = interest_rate / (12 * 100)  # Monthly Interest Rate
+        N = Loan_Duration * 12  # Total Loan Months
 
-    try:
-        emi = (P * R * (1 + R)**N) / ((1 + R)**N - 1)
-    except ZeroDivisionError:
-        emi = 0  # If interest rate = 0
+        try:
+            emi = (P * R * (1 + R)**N) / ((1 + R)**N - 1)
+        except ZeroDivisionError:
+            emi = 0  # If interest rate = 0
 
-    total_payment = emi * N
-    total_interest = total_payment - P
+        total_payment = emi * N
+        total_interest = total_payment - P
 
     # Display Loan Details
-    st.header('📋 Loan Repayment Details:')
-    st.info(f'📌 Monthly EMI: ₹{emi:.2f}')
-    st.info(f'📌 Total Payment (Principal + Interest): ₹{total_payment:.2f}')
-    st.info(f'📌 Total Interest Payable: ₹{total_interest:.2f}')
+        st.header('📋 Loan Repayment Details:')
+        st.info(f'📌 Monthly EMI: ₹{emi:.2f}')
+        st.info(f'📌 Total Payment (Principal + Interest): ₹{total_payment:.2f}')
+        st.info(f'📌 Total Interest Payable: ₹{total_interest:.2f}')
